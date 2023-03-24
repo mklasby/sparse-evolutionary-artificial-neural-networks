@@ -47,9 +47,15 @@ from keras import optimizers
 import numpy as np
 from keras import backend as K
 #Please note that in newer versions of keras_contrib you may encounter some import errors. You can find a fix for it on the Internet, or as an alternative you can try other activations functions.
-from keras_contrib.layers.advanced_activations import SReLU
+# from keras_contrib.layers.advanced_activations import SReLU
+from keras_contrib.layers.advanced_activations.srelu import SReLU
+# from keras.activations import Relu
 from keras.datasets import cifar10
 from keras.utils import np_utils
+import tensorflow as tf
+
+
+# tf.config.run_functions_eagerly(True)
 
 class Constraint(object):
 
@@ -95,12 +101,12 @@ def createWeightsMask(epsilon,noRows, noCols):
 
 
 class SET_MLP_CIFAR10:
-    def __init__(self):
+    def __init__(self, ep=5):
         # set model parameters
-        self.epsilon = 20 # control the sparsity level as discussed in the paper
+        self.epsilon = ep # control the sparsity level as discussed in the paper   # 1 == 99.9 | 5 99 | 15 98 | 20 90
         self.zeta = 0.3 # the fraction of the weights removed
         self.batch_size = 100 # batch size
-        self.maxepoches = 1000 # number of epochs
+        self.maxepoches = 20 # number of epochs  # TODO
         self.learning_rate = 0.01 # SGD learning rate
         self.num_classes = 10 # number of classes
         self.momentum=0.9 # SGD momentum
@@ -123,11 +129,20 @@ class SET_MLP_CIFAR10:
 
         # create a SET-MLP model
         self.create_model()
+        # import pickle
+        # with open("wm1.ckpt", "wb") as handle:
+        #     pickle.dump(self.wm1, handle)
+        # with open("wm2.ckpt", "wb") as handle:
+        #     pickle.dump(self.wm2, handle)
+        # with open("wm3.ckpt", "wb") as handle:
+        #     pickle.dump(self.wm3, handle)
+        
 
-        # train the SET-MLP model
+        # train the SET-MLP model``
         self.train()
+        
 
-
+    # @tf.function
     def create_model(self):
 
         # create a SET-MLP model for CIFAR10 with 3 hidden layers
@@ -255,11 +270,20 @@ class SET_MLP_CIFAR10:
 if __name__ == '__main__':
 
     # create and run a SET-MLP model on CIFAR10
-    model=SET_MLP_CIFAR10()
+    # 1 == 99.9 | 5 99 | 15 98 | 20 90
+    ep=5
+    model=SET_MLP_CIFAR10(ep=ep)
+    import pickle
+    with open(f"ep_{ep}_wm1.ckpt", "wb") as handle:
+        pickle.dump(model.wm1, handle)
+    with open(f"ep_{ep}_wm2.ckpt", "wb") as handle:
+        pickle.dump(model.wm2, handle)
+    with open(f"ep_{ep}_wm3.ckpt", "wb") as handle:
+        pickle.dump(model.wm3, handle)
 
     # save accuracies over for all training epochs
     # in "results" folder you can find the output of running this file
-    np.savetxt("results/set_mlp_srelu_sgd_cifar10_acc.txt", np.asarray(model.accuracies_per_epoch))
+    np.savetxt("results/set_mlp_SReLU_sgd_cifar10_acc.txt", np.asarray(model.accuracies_per_epoch))
 
 
 
